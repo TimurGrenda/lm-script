@@ -2,12 +2,18 @@
 
 An editor-based wrapper for [llm](https://github.com/simonw/llm). Opens your
 `$EDITOR` to compose prompts, streams responses rendered as Markdown, and
-supports multi-turn conversations and history browsing.
+supports multi-turn conversations and history browsing. Also does not need
+the quotes
 
 ## Clone
 
+### Normal Usage
 ```bash
-# Clone with submodules (test helper libraries)
+git clone https://github.com/TimurGrenda/lm-script.git
+```
+### Development
+Clone with submodules (test helper libraries)
+```bash
 git clone --recurse-submodules https://github.com/TimurGrenda/lm-script.git
 ```
 
@@ -17,6 +23,20 @@ If you already cloned without `--recurse-submodules`:
 git submodule init
 git submodule update
 ```
+
+## Installation
+
+Add `lm` to your `PATH` so you can run it from any terminal:
+
+```bash
+# Create a symlink in a directory that is already on your PATH
+ln -s "$(pwd)/lm" ~/.local/bin/lm
+```
+
+After that, open a new terminal and type `lm -- your question here` to get a
+quick answer.
+
+To update, just `git pull` inside the cloned directory.
 
 ## Usage
 
@@ -34,20 +54,6 @@ git submodule update
 ./lm --history-view
 
 ```
-
-## Installation
-
-Add `lm` to your `PATH` so you can run it from any terminal:
-
-```bash
-# Create a symlink in a directory that is already on your PATH
-ln -s "$(pwd)/lm" ~/.local/bin/lm
-```
-
-After that, open a new terminal and type `lm -- your question here` to get a
-quick answer.
-
-To update, just `git pull` inside the cloned directory.
 
 ## LLM Template
 
