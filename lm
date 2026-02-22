@@ -1,0 +1,169 @@
+#!/bin/bash
+# Editor-based wrapper for llm
+
+EDITOR="${EDITOR:-vim}"
+tmpfile=""
+
+# LM_TTY controls which tty device is used for interactive I/O.
+# Defaults to /dev/tty for normal use; tests override this to /dev/null
+# to prevent interactive hangs during automated testing.
+LM_TTY="${LM_TTY:-/dev/tty}"
+
+trap 'rm -f "$tmpfile" 2>/dev/null' EXIT
+
+render_markdown() {
+  bat --style=plain --paging=never --language md
+}
+
+run_llm() {
+  llm "$@" | render_markdown
+}
+
+# Browse recent conversations interactively via fzf and print the selected conversation_id
+pick_conversation() {
+  local db_path
+  db_path="$(llm logs path)"
+
+  # Query the 100 most recent conversations with timestamp and first prompt,
+  # pipe through fzf for interactive selection, extract the conversation_id (first field)
+  sqlite3 -separator ' | ' "$db_path" \
+    "SELECT conversation_id,
+            datetime(datetime_utc),
+            replace(substr(prompt, 1, 120), char(10), ' ')
+     FROM responses
+     ORDER BY id DESC
+     LIMIT 100" \
+    | fzf --with-nth=2.. --delimiter=' \\| ' \
+    | awk -F ' \\| ' '{print $1}'
+}
+
+# Function to get input via editor
+get_input() {
+  # On macos mktemp does not have the suffix option?
+  tmpfile="$(mktemp "${TMPDIR:-/tmp}/prompt.XXXXXXXX.md")"
+
+  # Open neovim in insert mode, others normally
+  if [[ "$EDITOR" == *"nvim"* ]]; then
+    $EDITOR -c startinsert "$tmpfile" >"$LM_TTY"
+  else
+    $EDITOR "$tmpfile" >"$LM_TTY"
+  fi
+
+  # If the editor exited with nothing written, return empty
+  if ! grep -q '[^[:space:]]' "$tmpfile" 2>/dev/null; then
+    rm "$tmpfile"
+    tmpfile=""
+    return
+  fi
+
+  echo "# Prompt:" >"$LM_TTY"
+  bat --style=plain --paging=never --language md "$tmpfile" >"$LM_TTY"
+  # tmpfile is cleaned up by the EXIT trap
+  cat "$tmpfile"
+}
+
+# Parse arguments: everything before "--" is passed to llm as options,
+# everything after "--" is the prompt text. This avoids maintaining a catalog
+# of every llm flag — new flags pass through automatically.
+parse_args() {
+  LLM_OPTS=()
+  PROMPT=""
+  has_template=false
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --)
+        shift
+        # Everything remaining after "--" is the prompt
+        PROMPT="$*"
+        break
+        ;;
+      -t|--template)
+        # Track template usage so we can apply default when none given
+        has_template=true
+        LLM_OPTS+=("$1" "$2")
+        shift 2
+        ;;
+      *)
+        # Pass through any other flag/value to llm
+        LLM_OPTS+=("$1")
+        shift
+        ;;
+    esac
+  done
+
+  # Apply the default template unless the user specified one
+  if [[ "$has_template" == false ]]; then
+    LLM_OPTS+=("-t" "general")
+  fi
+}
+
+main() {
+  # Controls whether the initial query block runs; set to true by --history-continue
+  local skip_initial_query=false
+  local cid
+
+  # Handle --history-* before argument parsing so they work as early exits
+  case "${1:-}" in
+    --history-view)
+      cid="$(pick_conversation)" || exit 0
+      # Empty selection means user pressed Esc in fzf
+      [[ -z "$cid" ]] && exit 0
+      # Display the full conversation and exit
+      llm logs list --cid "$cid" | render_markdown
+      exit 0
+      ;;
+    --history-continue)
+      cid="$(pick_conversation)" || exit 0
+      [[ -z "$cid" ]] && exit 0
+      # Display the conversation so the user has context before continuing
+      llm logs list --cid "$cid" | render_markdown
+      # Will skip the initial query and jump straight into the conversation loop
+      skip_initial_query=true
+      shift
+      ;;
+  esac
+
+  parse_args "$@"
+
+  # When resuming a picked conversation, inject --cid so all subsequent replies
+  # attach to that conversation; skip the initial query since we already displayed it
+  if [[ "$skip_initial_query" == true ]]; then
+    LLM_OPTS+=("--cid" "$cid")
+  else
+    # Initial query: use inline prompt if given, otherwise open editor
+    if [[ -n "$PROMPT" ]]; then
+      run_llm "${LLM_OPTS[@]}" "$PROMPT"
+    else
+      local input
+      input="$(get_input)"
+      [ -z "$input" ] && exit 0
+      run_llm "${LLM_OPTS[@]}" "$input"
+    fi
+  fi
+
+  # Continue conversation
+  while true; do
+    local key response
+    # Without the "</dev/tty" pressing shift or tab while llm was streaming the response
+    # opened the editor at the end of the stream right away without waiting for enter
+    read -r -p "Press Enter for editor, a-z for quick reply, Ctrl+C to quit: " -n1 key <"$LM_TTY"
+    echo
+    if [[ "$key" =~ ^[a-zA-Z]$ ]]; then
+      response="$key"
+    elif [[ -z "$key" ]]; then
+      response="$(get_input)"
+      [ -z "$response" ] && break
+    else
+      continue
+    fi
+
+    run_llm "${LLM_OPTS[@]}" -c "$response"
+  done
+}
+
+# Source guard: when this script is sourced (e.g., by bats tests), functions are
+# defined but main() is not executed. When run directly, main() runs as usual.
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+  main "$@"
+fi

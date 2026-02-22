@@ -1,0 +1,12 @@
+#!/bin/bash
+# Mock for `sqlite3` — returns configurable rows.
+# Controlled by environment variables:
+#   MOCK_SQLITE3_OUTPUT — the rows to return (default: empty)
+#   MOCK_SQLITE3_LOG    — if set, append invocation args to this file
+
+# Log invocation when requested
+if [[ -n "${MOCK_SQLITE3_LOG:-}" ]]; then
+  echo "sqlite3 $*" >> "$MOCK_SQLITE3_LOG"
+fi
+
+echo "${MOCK_SQLITE3_OUTPUT:-}"

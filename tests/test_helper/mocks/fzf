@@ -1,0 +1,22 @@
+#!/bin/bash
+# Mock for `fzf` — returns configurable selection or exits non-zero.
+# Controlled by environment variables:
+#   MOCK_FZF_OUTPUT   — the selected line to return
+#   MOCK_FZF_EXIT     — exit code (default: 0). Set to 1 to simulate Esc/cancel.
+#   MOCK_FZF_LOG      — if set, append invocation args to this file
+
+# Log invocation when requested
+if [[ -n "${MOCK_FZF_LOG:-}" ]]; then
+  echo "fzf $*" >> "$MOCK_FZF_LOG"
+fi
+
+# Consume stdin so the pipe doesn't break
+cat > /dev/null
+
+exit_code="${MOCK_FZF_EXIT:-0}"
+
+if [[ "$exit_code" -ne 0 ]]; then
+  exit "$exit_code"
+fi
+
+echo "${MOCK_FZF_OUTPUT:-}"

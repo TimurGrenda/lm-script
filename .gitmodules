@@ -1,0 +1,15 @@
+[submodule "tests/test_helper/bats-libs/bats-assert"]
+	path = tests/test_helper/bats-libs/bats-assert
+	url = https://github.com/bats-core/bats-assert.git
+
+[submodule "tests/test_helper/bats-libs/bats-file"]
+	path = tests/test_helper/bats-libs/bats-file
+	url = https://github.com/bats-core/bats-file.git
+
+[submodule "tests/test_helper/bats-libs/bats-support"]
+	path = tests/test_helper/bats-libs/bats-support
+	url = https://github.com/bats-core/bats-support.git
+
+[submodule "tests/test_helper/bats-libs/bats-core"]
+	path = tests/test_helper/bats-libs/bats-core
+	url = https://github.com/bats-core/bats-core.git

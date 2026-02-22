@@ -1,0 +1,35 @@
+#!/bin/bash
+# Mock for the `llm` CLI tool.
+# Controlled by environment variables:
+#   MOCK_LLM_LOGS_PATH  — returned by `llm logs path`
+#   MOCK_LLM_LOGS_LIST  — returned by `llm logs list --cid <id>`
+#   MOCK_LLM_RESPONSE   — returned for regular prompts (default: "mock response")
+#   MOCK_LLM_LOG        — if set, append invocation args to this file
+
+# Log invocation when requested
+if [[ -n "${MOCK_LLM_LOG:-}" ]]; then
+  echo "llm $*" >> "$MOCK_LLM_LOG"
+fi
+
+case "${1:-}" in
+  logs)
+    case "${2:-}" in
+      path)
+        # Return a configurable database path
+        echo "${MOCK_LLM_LOGS_PATH:-/tmp/mock-logs.db}"
+        ;;
+      list)
+        # Return configurable conversation content
+        echo "${MOCK_LLM_LOGS_LIST:-mock conversation content}"
+        ;;
+      *)
+        echo "mock llm logs: unknown subcommand '$2'" >&2
+        exit 1
+        ;;
+    esac
+    ;;
+  *)
+    # Regular prompt — echo the configured response
+    echo "${MOCK_LLM_RESPONSE:-mock response}"
+    ;;
+esac

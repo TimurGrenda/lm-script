@@ -1,0 +1,41 @@
+#!/bin/bash
+# Mock for `bat` — acts as a simple cat passthrough.
+# Controlled by environment variables:
+#   MOCK_BAT_LOG — if set, append invocation args to this file
+
+# Log invocation when requested
+if [[ -n "${MOCK_BAT_LOG:-}" ]]; then
+  echo "bat $*" >> "$MOCK_BAT_LOG"
+fi
+
+# Parse arguments: skip flags and their values, find the file argument.
+# Flags that take a value: --language, --style, --paging, --theme, etc.
+file_arg=""
+skip_next=false
+for arg in "$@"; do
+  if [[ "$skip_next" == true ]]; then
+    # This arg is a value for the previous flag; skip it
+    skip_next=false
+    continue
+  fi
+  case "$arg" in
+    --language|--style|--paging|--theme|--tabs|--wrap|--terminal-width)
+      # These flags take a separate next argument as their value
+      skip_next=true
+      ;;
+    --*)
+      # Other flags with = syntax (e.g. --style=plain) or standalone flags
+      ;;
+    *)
+      # Not a flag — this is the file argument
+      file_arg="$arg"
+      ;;
+  esac
+done
+
+if [[ -n "$file_arg" ]]; then
+  cat "$file_arg"
+else
+  # No file argument — pass through stdin
+  cat
+fi
