@@ -15,7 +15,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - Interactive readline mode: when `:` is the last argument (nothing after it), `INTERACTIVE_PROMPT` is set to `true`.
 - `get_readline_input()` function: reads a single-line prompt via readline, bypassing shell metacharacter issues.
 - `main()` now uses `get_readline_input()` when `INTERACTIVE_PROMPT` is true, completing the interactive readline workflow.
-
-### Testing
-
-- Added integration test for interactive readline mode (bare `:` with `LM_TTY` feeding input).
+- Integration test for interactive readline mode (bare `:` with `LM_TTY` feeding input).

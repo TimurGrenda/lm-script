@@ -2,8 +2,8 @@
 
 An editor-based wrapper for [llm](https://github.com/simonw/llm). Opens your
 `$EDITOR` to compose prompts, streams responses rendered as Markdown, and
-supports multi-turn conversations and history browsing. Also does not need
-the quotes
+supports multi-turn conversations and history browsing. Uses `:` as the
+prompt separator — no quoting needed for most prompts.
 
 ## Clone
 
@@ -33,7 +33,7 @@ Add `lm` to your `PATH` so you can run it from any terminal:
 ln -s "$(pwd)/lm" ~/.local/bin/lm
 ```
 
-After that, open a new terminal and type `lm -- your question here` to get a
+After that, open a new terminal and type `lm : your question here` to get a
 quick answer.
 
 To update, just `git pull` inside the cloned directory.
@@ -44,8 +44,11 @@ To update, just `git pull` inside the cloned directory.
 # Open editor to compose a prompt
 ./lm
 
-# Inline prompt (everything after -- is the prompt)
-./lm -- explain quicksort
+# Inline prompt (everything after : is the prompt)
+./lm : explain quicksort
+
+# Interactive prompt (bypasses shell metacharacter issues)
+./lm :
 
 # Continue a previous conversation (interactive picker)
 ./lm --history-continue
@@ -54,6 +57,11 @@ To update, just `git pull` inside the cloned directory.
 ./lm --history-view
 
 ```
+
+> **Note:** The `:` separator lets you type prompts without quoting in most
+> cases. For prompts containing shell metacharacters like `(`, `)`, or
+> backticks, use the interactive mode (`lm :`) which reads input after bash
+> has finished parsing.
 
 ## LLM Template
 
