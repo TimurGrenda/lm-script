@@ -2,13 +2,23 @@
   "id": "1-replace-separator-with-and-add-interactive-readline.2",
   "epic": "1-replace-separator-with-and-add-interactive-readline",
   "title": "Add get_readline_input() and wire up main()",
-  "status": "in_progress",
+  "status": "done",
   "dependsOn": [
     1
   ],
   "assignee": "Timur",
-  "evidence": null,
+  "evidence": {
+    "commit": "4871dce",
+    "review": {
+      "rounds": 2,
+      "codex": "PASS",
+      "pedant": "PASS",
+      "architect": "PASS",
+      "breaker": "PASS",
+      "result": "PASS"
+    }
+  },
   "blockReason": null,
   "createdAt": "2026-03-09T15:11:31.601Z",
-  "updatedAt": "2026-03-09T16:45:43.508Z"
+  "updatedAt": "2026-03-09T17:05:40.194Z"
 }

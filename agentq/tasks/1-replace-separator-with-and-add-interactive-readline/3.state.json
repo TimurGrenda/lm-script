@@ -2,13 +2,23 @@
   "id": "1-replace-separator-with-and-add-interactive-readline.3",
   "epic": "1-replace-separator-with-and-add-interactive-readline",
   "title": "Update tests for : separator",
-  "status": "todo",
+  "status": "done",
   "dependsOn": [
     2
   ],
-  "assignee": null,
-  "evidence": null,
+  "assignee": "Timur",
+  "evidence": {
+    "commit": "37e57c7",
+    "review": {
+      "rounds": 2,
+      "codex": "PASS",
+      "pedant": "PASS",
+      "architect": "PASS",
+      "breaker": "PASS",
+      "result": "PASS"
+    }
+  },
   "blockReason": null,
   "createdAt": "2026-03-09T15:11:54.630Z",
-  "updatedAt": "2026-03-09T15:11:54.630Z"
+  "updatedAt": "2026-03-09T17:32:05.272Z"
 }
