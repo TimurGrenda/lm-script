@@ -1,0 +1,22 @@
+{
+  "id": "1-replace-separator-with-and-add-interactive-readline.1",
+  "epic": "1-replace-separator-with-and-add-interactive-readline",
+  "title": "Modify parse_args() to use : instead of --",
+  "status": "done",
+  "dependsOn": [],
+  "assignee": "Timur",
+  "evidence": {
+    "commit": "2d4b65b",
+    "review": {
+      "rounds": 2,
+      "codex": "PASS",
+      "pedant": "PASS",
+      "architect": "PASS",
+      "breaker": "PASS",
+      "result": "PASS"
+    }
+  },
+  "blockReason": null,
+  "createdAt": "2026-03-09T15:11:13.488Z",
+  "updatedAt": "2026-03-09T16:45:33.708Z"
+}
