@@ -18,7 +18,7 @@ setup() {
 }
 
 teardown() {
-  rm -f "$MOCK_LLM_LOG" "$MOCK_BAT_LOG"
+  rm -f "$MOCK_LLM_LOG" "$MOCK_BAT_LOG" "${INTERACTIVE_PROMPT_FILE:-}"
 }
 
 @test "inline prompt passed to llm with default template" {
@@ -55,10 +55,9 @@ teardown() {
   # so re-opening the file re-reads stale content and the loop never exits on
   # its own. We run lm in the background, poll MOCK_LLM_LOG for the expected
   # prompt, then kill the process. This avoids GNU `timeout` (not on stock macOS).
-  local prompt_file
-  prompt_file="$(mktemp)"
-  echo "explain bash" > "$prompt_file"
-  export LM_TTY="$prompt_file"
+  INTERACTIVE_PROMPT_FILE="$(mktemp)"
+  echo "explain bash" > "$INTERACTIVE_PROMPT_FILE"
+  export LM_TTY="$INTERACTIVE_PROMPT_FILE"
 
   "$LM_SCRIPT" : &>/dev/null &
   local lm_pid=$!
@@ -76,6 +75,4 @@ teardown() {
 
   run cat "$MOCK_LLM_LOG"
   assert_output --partial "explain bash"
-
-  rm -f "$prompt_file"
 }

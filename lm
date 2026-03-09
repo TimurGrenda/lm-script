@@ -19,11 +19,14 @@ run_llm() {
   llm "$@" | render_markdown
 }
 
-# Read a single-line prompt interactively via readline.
+# Read a single-line prompt interactively.
 # Used when ":" is the last argument, bypassing shell metacharacter issues.
+# Note: called inside $(), so read -e's readline features (arrow keys, history)
+# are effectively disabled. The user still gets basic line input, which is the
+# primary goal (avoiding shell metacharacter parsing).
 get_readline_input() {
   local input
-  # -e: use readline for line editing
+  # -e: use readline for line editing (limited in subshell — see note above)
   # -r: do not interpret backslash escapes
   # SC2094: reading stdin and writing the prompt to stdout on the same tty is intentional
   # shellcheck disable=SC2094
@@ -166,12 +169,12 @@ main() {
     elif [[ "$INTERACTIVE_PROMPT" == true ]]; then
       local input
       input="$(get_readline_input)"
-      [ -z "$input" ] && exit 0
+      [[ -z "$input" ]] && exit 0
       run_llm "${LLM_OPTS[@]}" "$input"
     else
       local input
       input="$(get_input)"
-      [ -z "$input" ] && exit 0
+      [[ -z "$input" ]] && exit 0
       run_llm "${LLM_OPTS[@]}" "$input"
     fi
   fi
