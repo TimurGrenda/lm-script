@@ -22,7 +22,7 @@ teardown() {
 }
 
 @test "inline prompt passed to llm with default template" {
-  run "$LM_SCRIPT" -- "explain bash"
+  run "$LM_SCRIPT" : "explain bash"
 
   assert_success
 
@@ -33,7 +33,7 @@ teardown() {
 }
 
 @test "custom template overrides default" {
-  run "$LM_SCRIPT" -t code -- "explain bash"
+  run "$LM_SCRIPT" -t code : "explain bash"
 
   assert_success
 

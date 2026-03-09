@@ -62,20 +62,37 @@ get_input() {
   cat "$tmpfile"
 }
 
-# Parse arguments: everything before "--" is passed to llm as options,
-# everything after "--" is the prompt text. This avoids maintaining a catalog
-# of every llm flag — new flags pass through automatically.
+# Parse arguments: everything before ":" is passed to llm as options,
+# everything after ":" is the prompt text. If ":" is the last argument
+# (nothing after it), interactive readline mode is triggered.
+# ":" is a shell-safe single character (not a metacharacter), making it a
+# convenient separator. The real fix for metacharacters like ( ) ` is the
+# interactive readline mode (bare ":"), where the prompt is entered after
+# bash has finished parsing the command line. With text after ":", users
+# still need to quote prompts containing shell metacharacters.
+# INTERACTIVE_PROMPT is consumed by callers / tests; not used in this file yet
+# shellcheck disable=SC2034
 parse_args() {
   LLM_OPTS=()
   PROMPT=""
+  INTERACTIVE_PROMPT=false
   has_template=false
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --)
+      :)
+        # By design, ":" is always treated as the separator even if intended as
+        # a flag value (e.g. "lm -s : explain"). This is an acceptable trade-off
+        # since ":" is rarely a useful flag value.
         shift
-        # Everything remaining after "--" is the prompt
-        PROMPT="$*"
+        if [[ $# -eq 0 ]]; then
+          # No text after ":" — trigger interactive readline mode
+          # TODO(1-replace-separator-with-and-add-interactive-readline.2): wire up INTERACTIVE_PROMPT in main()
+          INTERACTIVE_PROMPT=true
+        else
+          # Everything remaining after ":" is the prompt
+          PROMPT="$*"
+        fi
         break
         ;;
       -t|--template)
