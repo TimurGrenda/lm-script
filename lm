@@ -19,6 +19,18 @@ run_llm() {
   llm "$@" | render_markdown
 }
 
+# Read a single-line prompt interactively via readline.
+# Used when ":" is the last argument, bypassing shell metacharacter issues.
+get_readline_input() {
+  local input
+  # -e: use readline for line editing
+  # -r: do not interpret backslash escapes
+  # SC2094: reading stdin and writing the prompt to stdout on the same tty is intentional
+  # shellcheck disable=SC2094
+  IFS= read -e -r -p "prompt: " input <"$LM_TTY" >"$LM_TTY"
+  printf '%s\n' "$input"
+}
+
 # Browse recent conversations interactively via fzf and print the selected conversation_id
 pick_conversation() {
   local db_path
@@ -70,8 +82,6 @@ get_input() {
 # interactive readline mode (bare ":"), where the prompt is entered after
 # bash has finished parsing the command line. With text after ":", users
 # still need to quote prompts containing shell metacharacters.
-# INTERACTIVE_PROMPT is consumed by callers / tests; not used in this file yet
-# shellcheck disable=SC2034
 parse_args() {
   LLM_OPTS=()
   PROMPT=""
@@ -87,7 +97,6 @@ parse_args() {
         shift
         if [[ $# -eq 0 ]]; then
           # No text after ":" — trigger interactive readline mode
-          # TODO(1-replace-separator-with-and-add-interactive-readline.2): wire up INTERACTIVE_PROMPT in main()
           INTERACTIVE_PROMPT=true
         else
           # Everything remaining after ":" is the prompt
@@ -148,9 +157,14 @@ main() {
   if [[ "$skip_initial_query" == true ]]; then
     LLM_OPTS+=("--cid" "$cid")
   else
-    # Initial query: use inline prompt if given, otherwise open editor
+    # Initial query: use inline prompt if given, readline if ":" was bare, otherwise open editor
     if [[ -n "$PROMPT" ]]; then
       run_llm "${LLM_OPTS[@]}" "$PROMPT"
+    elif [[ "$INTERACTIVE_PROMPT" == true ]]; then
+      local input
+      input="$(get_readline_input)"
+      [ -z "$input" ] && exit 0
+      run_llm "${LLM_OPTS[@]}" "$input"
     else
       local input
       input="$(get_input)"
