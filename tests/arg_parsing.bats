@@ -21,6 +21,7 @@ setup() {
 
   assert_equal "$PROMPT" "hello world"
   assert_equal "${LLM_OPTS[*]}" "-t general"
+  assert_equal "$INTERACTIVE_PROMPT" "false"
 }
 
 @test "multi-word prompt after :" {

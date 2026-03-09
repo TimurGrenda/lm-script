@@ -27,7 +27,10 @@ get_readline_input() {
   # -r: do not interpret backslash escapes
   # SC2094: reading stdin and writing the prompt to stdout on the same tty is intentional
   # shellcheck disable=SC2094
-  IFS= read -e -r -p "prompt: " input <"$LM_TTY" >"$LM_TTY"
+  # >> instead of > so that when LM_TTY is a regular file (e.g. in tests),
+  # the output redirect doesn't truncate the input before read can consume it.
+  # On a real tty, > and >> behave identically.
+  IFS= read -e -r -p "prompt: " input <"$LM_TTY" >>"$LM_TTY"
   printf '%s\n' "$input"
 }
 
