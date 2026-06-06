@@ -11,12 +11,16 @@ LM_TTY="${LM_TTY:-/dev/tty}"
 
 trap 'rm -f "$tmpfile" 2>/dev/null' EXIT
 
-render_markdown() {
+stream_markdown() {
   bat --style=plain --paging=never --language md
 }
 
+render_markdown() {
+  mdcat --local
+}
+
 run_llm() {
-  llm "$@" | render_markdown
+  llm "$@" | stream_markdown
 }
 
 # Read a single-line prompt interactively.
